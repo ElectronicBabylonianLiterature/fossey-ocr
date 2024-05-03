@@ -21,6 +21,7 @@ if __name__ == '__main__':
     print("We're doing stuff here now")
 
 
+    # TODO: pass the dataset folder as an argument or something?
     folder = "dataset/"
 
     myImages = load_images_from_folder(folder)
