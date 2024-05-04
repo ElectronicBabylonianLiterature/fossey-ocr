@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fossey_reader"
+version = "0.0.1"
+authors = [
+  { name="Vera Wells", email="vawells158@gmail.com" },
+]
+description = "OCR on Fossey's Manuel d'Assyriologie II"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "opencv-python"
+]
+
+[project.urls]
+Homepage = "https://github.com/ElectronicBabylonianLiterature/fossey-ocr"
+Issues = "https://github.com/ElectronicBabylonianLiterature/fossey-ocr/issues"
+
+# double check that this is correct
+[tool.setuptools.package-data]
+fossey_reader = ["*.png"]
