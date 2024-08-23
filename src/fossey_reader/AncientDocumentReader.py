@@ -27,6 +27,7 @@ class AncientDocumentReader:
         # Using global threshold since all images were scanned under similar lighting conditions
         # Adaptive threshold results in a lot of noise
         ret, thresh_im = cv2.threshold(self.gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+        self.threshIm = thresh_im
         #thresh_im = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 2)
         #self.showImage(gray)
 
@@ -39,50 +40,28 @@ class AncientDocumentReader:
         # Except instead of black lines for horizontal structure, use whitespace as the "horizontal structure"
         # can come back to this kernel and opening for noise reduction later
 
+        #kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (4, 4))
+        #kernel = cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))
         #kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
         #kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (6, 6))
 
         # Opening is erosion followed by dilation which is useful for removing noise
         opening = cv2.morphologyEx(thresh_im, cv2.MORPH_OPEN, kernel, iterations=1)
+        self.opening = opening
 
-        # Going to leave the cleaning here
-
-        #return opening
-        #self.threshIm = thresh_im
-        self.threshIm = opening
-        return opening
+        closing = cv2.morphologyEx(thresh_im, cv2.MORPH_CLOSE, kernel, iterations=1)
+        self.closing = closing
 
 
     def removeBoundingLines(self):
         ######## Trying out a new approach where I jump into line extraction and/or separation without all the cleaning for now ###
         # Create the images that we will use to extract the horizontal and vertical lines
         self.cleanImage()
-        horizontal = np.copy(self.threshIm)
-        vertical = np.copy(self.threshIm)
 
-        # Specify size on horizontal axis
-        cols = horizontal.shape[1]
-        horizontal_size = cols // 30
-
-        # Create structure element for extracting horizontal lines through morphology operations
-        horizontal_structure = cv2.getStructuringElement(cv2.MORPH_RECT, (horizontal_size,  1))
-
-        # Apply morphology operations
-        #horizontal = cv2.erode(horizontal, horizontal_structure)
-        #horizontal = cv2.dilate(horizontal, horizontal_structure)
-
-        #self.showImage(horizontal)
-
-
-        # There is something wrong with the contour finding
-        #remove_horizontal = cv2.morphologyEx(horizontal, cv2.MORPH_CLOSE, horizontal_structure, iterations=1)
-        #remove_horizontal = cv2.morphologyEx(self.threshIm, cv2.MORPH_CLOSE, horizontal_structure, iterations=1)
-        #self.showImage(remove_horizontal)
-        
-        #contours = cv2.findContours(remove_horizontal, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        #contours = cv2.findContours(remove_horizontal, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        contours, hierarchies = cv2.findContours(self.threshIm, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        # using closing because found an image with a white scanner line
+        contours, hierarchies = cv2.findContours(self.closing, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        #print(hierarchies)
 
 
         # Can identify the bounding box we want to remove because it is the only contour with 
@@ -90,36 +69,26 @@ class AncientDocumentReader:
 
         #contours = cv2.findContours(horizontal, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         #contours = contours[0] if len(contours) == 2 else contours[1]
-        mask = np.zeros(self.gray.shape, np.uint8)
 
-        thing = np.copy(self.threshIm)
         thing = np.copy(self.image)
-        #cv2.drawContours(thing, contours, -1, (0,255,0), 2)
+        another = np.copy(self.closing)
 
         for c in contours:
             area = cv2.contourArea(c)
-            print(area)
-            #cv2.drawContours(thing, [c], -1, (0,0,0), 2)
-            if area > 10000:
+            #print(area)
+            perimeter = cv2.arcLength(c,False)
+            # print(perimeter)
+            if perimeter > 2_000:
                 cv2.drawContours(thing, [c], -1, (0,255,0), 10)
-                #cv2.drawContours(thing, [c], -1, (0,0,0), 10)
-            #cv2.drawContours(thing, [c], -1, (255,255,255), 2)
+
+                if area > 1_000_000:
+                    cv2.drawContours(another, [c], -1, (0,0,0), 10)
+                else:
+                    cv2.fillPoly(another, [c], color = (0,0,0))
+
         self.showImage(thing)
-
-        # first inpaint
-        #img_dst = cv2.inpaint(self.image, mask, 3, cv2.INPAINT_TELEA)
-
-        #self.showImage(img_dst)
-
-        # Specify size on vertical axis
-        #rows = vertical.shape[0]
-        #vertical_size = rows // 30
-
-        ## Create structure element for extracting vertical lines through morphology operations
-        #vertical_structure = cv2.getStructuringElement(cv2.MORPH_RECT, (1,  vertical_size))
-
-        ## Apply morphology operations
-        #vertical = cv2.erode(vertical, vertical_structure)
-        #vertical = cv2.dilate(vertical, vertical_structure)
-
-        #self.showImage(vertical)
+        self.showImage(another)
+        self.boundingLines = thing
+        self.lineCleanedInverted = another
+        self.lineCleaned = cv2.bitwise_not(another)
+        self.showImage(self.lineCleaned)
