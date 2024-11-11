@@ -40,8 +40,9 @@ class AncientDocumentReader:
         # Except instead of black lines for horizontal structure, use whitespace as the "horizontal structure"
         # can come back to this kernel and opening for noise reduction later
 
-        #kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
-        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (4, 4))
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
+        #kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (4, 4))
+        #kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (1, 1))
         #kernel = cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))
         #kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
         #kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (6, 6))
@@ -78,7 +79,7 @@ class AncientDocumentReader:
             #print(area)
             perimeter = cv2.arcLength(c,False)
             # print(perimeter)
-            if perimeter > 2_000:
+            if perimeter > 8_000:
                 cv2.drawContours(thing, [c], -1, (0,255,0), 10)
 
                 if area > 1_000_000:
@@ -86,9 +87,9 @@ class AncientDocumentReader:
                 else:
                     cv2.fillPoly(another, [c], color = (0,0,0))
 
-        self.showImage(thing)
-        self.showImage(another)
+        #self.showImage(thing)
+        #self.showImage(another)
         self.boundingLines = thing
         self.lineCleanedInverted = another
         self.lineCleaned = cv2.bitwise_not(another)
-        self.showImage(self.lineCleaned)
+        #self.showImage(self.lineCleaned)
