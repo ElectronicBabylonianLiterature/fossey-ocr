@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block title %}Results - Cuneiform Line Splitting System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Header -->
+        <div class="text-center mb-4">
+            <h1 class="display-5 text-success">
+                <i class="fas fa-check-circle"></i> Line Splitting Completed!
+            </h1>
+            <p class="lead">Your photo has been successfully split into {{ data.result.total_lines }} lines</p>
+        </div>
+
+        <!-- Summary Stats -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-center bg-primary text-white">
+                    <div class="card-body">
+                        <i class="fas fa-list-ol fa-2x mb-2"></i>
+                        <h4>{{ data.result.total_lines }}</h4>
+                        <p class="mb-0">Detected Lines</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center bg-success text-white">
+                    <div class="card-body">
+                        <i class="fas fa-image fa-2x mb-2"></i>
+                        <h4>{{ data.result.line_files|length }}</h4>
+                        <p class="mb-0">Separate Files</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center bg-info text-white">
+                    <div class="card-body">
+                        <i class="fas fa-clock fa-2x mb-2"></i>
+                        <h4>{{ data.timestamp }}</h4>
+                        <p class="mb-0">Process Time</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center bg-warning text-white">
+                    <div class="card-body">
+                        <i class="fas fa-file-archive fa-2x mb-2"></i>
+                        <h4>ZIP</h4>
+                        <p class="mb-0">Bulk Download</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Download Buttons -->
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-download"></i> Download Options
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Visualizations</h5>
+                        <div class="d-grid gap-2">
+                            <a href="{{ url_for('download_file', timestamp=data.timestamp, filename='line_visualization_' + data.timestamp + '.jpg') }}" 
+                               class="btn btn-outline-primary">
+                                <i class="fas fa-eye"></i> Main Visualization
+                            </a>
+                            <a href="{{ url_for('download_file', timestamp=data.timestamp, filename='summary_visualization_' + data.timestamp + '.jpg') }}" 
+                               class="btn btn-outline-info">
+                                <i class="fas fa-chart-line"></i> Özet Görselleştirme
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Toplu İndirme</h5>
+                        <div class="d-grid gap-2">
+                            <a href="{{ url_for('download_all', timestamp=data.timestamp) }}" 
+                               class="btn btn-success btn-lg">
+                                <i class="fas fa-file-archive"></i> Tüm Satırları ZIP Olarak İndir
+                            </a>
+                            <a href="{{ url_for('download_json', timestamp=data.timestamp) }}" 
+                               class="btn btn-info btn-lg">
+                                <i class="fas fa-file-code"></i> Analiz Verilerini JSON Olarak İndir
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Line Details -->
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-list"></i> Satır Detayları
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Satır No</th>
+                                <th>Dosya Adı</th>
+                                <th>Yükseklik</th>
+                                <th>Güven Oranı</th>
+                                <th>Padding Tipi</th>
+                                <th>İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for line in data.result.line_files %}
+                            <tr>
+                                <td>
+                                    <span class="badge bg-primary">{{ line.line_number }}</span>
+                                </td>
+                                <td>
+                                    <code>{{ line.filename }}</code>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ line.height }}px</span>
+                                </td>
+                                <td>
+                                    {% set confidence_percent = (line.confidence * 100)|round(1) %}
+                                    {% if confidence_percent >= 80 %}
+                                        <span class="badge bg-success">{{ confidence_percent }}%</span>
+                                    {% elif confidence_percent >= 60 %}
+                                        <span class="badge bg-warning">{{ confidence_percent }}%</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">{{ confidence_percent }}%</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% for region in data.result.line_regions %}
+                                        {% if region.line_number == line.line_number %}
+                                            {% if region.padding_type == "En Üst Satır" %}
+                                                <span class="badge bg-primary">{{ region.padding_type }}</span>
+                                            {% elif region.padding_type == "En Alt Satır" %}
+                                                <span class="badge bg-danger">{{ region.padding_type }}</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ region.padding_type }}</span>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ url_for('line_detail', line_number=line.line_number) }}?timestamp={{ data.timestamp }}" 
+                                           class="btn btn-sm btn-primary">
+                                            <i class="fas fa-eye"></i> Detay
+                                        </a>
+                                        <a href="{{ url_for('download_file', timestamp=data.timestamp, filename=line.filename) }}" 
+                                           class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-download"></i> İndir
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Line Spacing Info -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-ruler"></i> Satırlar Arası Mesafeler
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for i in range(data.result.line_regions|length - 1) %}
+                    <div class="col-md-4 mb-2">
+                        <div class="card border-info">
+                            <div class="card-body py-2">
+                                <small class="text-muted">
+                                    Satır {{ data.result.line_regions[i].line_number }} → {{ data.result.line_regions[i+1].line_number }}
+                                </small>
+                                <div class="text-center">
+                                    <span class="badge bg-info">20px</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Not:</strong> Tüm satırlar arasında minimum 20px mesafe sağlanmıştır. 
+                    Bu, satırların neredeyse değecek şekilde ayarlandığını gösterir.
+                </div>
+            </div>
+        </div>
+
+        <!-- New Upload -->
+        <div class="text-center mt-4">
+            <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus"></i> Yeni Fotoğraf Yükle
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-refresh page every 30 seconds to check for new results
+setTimeout(function() {
+    location.reload();
+}, 30000);
+
+// Add download progress indicators
+document.querySelectorAll('a[href*="download"]').forEach(link => {
+    link.addEventListener('click', function() {
+        const originalText = this.innerHTML;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> İndiriliyor...';
+        
+        setTimeout(() => {
+            this.innerHTML = originalText;
+        }, 2000);
+    });
+});
+</script>
+{% endblock %}

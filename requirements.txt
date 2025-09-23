@@ -1,0 +1,8 @@
+flask
+opencv-python
+numpy
+google-cloud-vision
+werkzeug
+easyocr
+
+PyYAML==6.0.2

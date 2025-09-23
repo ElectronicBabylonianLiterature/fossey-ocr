@@ -1,0 +1,59 @@
+# Virtual Environment
+venv/
+env/
+.venv/
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Flask
+instance/
+.env
+
+# Uploads and Outputs (optional - remove if you want to include sample data)
+web_uploads/
+web_outputs/
+batch_outputs/
+demo_line_output/
+
+# Database files
+*.db
+*.sqlite
+
+# OS Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Large image files (optional)
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.tiff
+*.svg
+
+# Except for sample/demo images in specific folders
+!static/images/
+!demo_images/

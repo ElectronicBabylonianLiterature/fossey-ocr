@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block title %}Satır {{ line_number }} Detayı{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>📋 Satır {{ line_number }} Detayı</h2>
+                <a href="{{ url_for('results', timestamp=request.args.get('timestamp', '')) }}" class="btn btn-secondary">
+                    ← Geri Dön
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {% if analysis %}
+    <div class="row">
+        <!-- 1. Kısım: Satır Numarası -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">🔢 1. Kısım: Satır Numarası</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <span class="display-4 text-primary">{{ analysis.line_number.number }}</span>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <strong>Pozisyon:</strong><br>
+                            <span class="badge badge-{{ 'success' if analysis.line_number.position == 'left' else 'info' }}">
+                                {{ 'Sol' if analysis.line_number.position == 'left' else 'Sağ' }}
+                            </span>
+                        </div>
+                        <div class="col-6">
+                            <strong>Konum:</strong><br>
+                            <small class="text-muted">
+                                X: {{ analysis.line_number.bbox[0] if analysis.line_number.bbox else 'N/A' }}<br>
+                                Y: {{ analysis.line_number.bbox[1] if analysis.line_number.bbox else 'N/A' }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Kısım: Cuneiform İşareti -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">🔤 2. Kısım: Cuneiform İşareti</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        {% if analysis.cuneiform_sign.vector_info and analysis.cuneiform_sign.vector_info.svg_path %}
+                        <!-- Vektörel Cuneiform -->
+                        <div class="mb-2">
+                            <object data="{{ url_for('download_file', timestamp=request.args.get('timestamp', ''), filename=analysis.cuneiform_sign.vector_info.svg_path) }}" 
+                                    type="image/svg+xml" 
+                                    class="img-fluid rounded shadow" 
+                                    style="max-height: 200px; max-width: 250px;">
+                                <!-- Fallback için normal resim -->
+                                <img src="{{ url_for('download_file', timestamp=request.args.get('timestamp', ''), filename=analysis.cuneiform_sign.image_path) }}" 
+                                     class="img-fluid rounded shadow" 
+                                     alt="Cuneiform İşareti"
+                                     style="max-height: 150px; max-width: 200px;">
+                            </object>
+                        </div>
+                        <div class="text-center">
+                            <small class="text-success">
+                                <i class="fas fa-vector-square"></i> Vektörel (SVG)
+                            </small>
+                        </div>
+                        {% elif analysis.cuneiform_sign.image_path %}
+                        <!-- Normal Cuneiform -->
+                        <div class="mb-2">
+                            <img src="{{ url_for('download_file', timestamp=request.args.get('timestamp', ''), filename=analysis.cuneiform_sign.image_path) }}" 
+                                 class="img-fluid rounded shadow" 
+                                 alt="Cuneiform İşareti"
+                                 style="max-height: 150px; max-width: 200px;">
+                        </div>
+                        <div class="text-center">
+                            <small class="text-muted">
+                                <i class="fas fa-image"></i> Raster
+                            </small>
+                        </div>
+                        {% else %}
+                        <div class="cuneiform-placeholder bg-light p-4 rounded">
+                            <i class="fas fa-font fa-3x text-muted"></i>
+                            <p class="mt-2 mb-0 text-muted">Cuneiform İşareti</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if analysis.cuneiform_sign.vector_info %}
+                    <hr class="my-3">
+                    <div class="row">
+                        <div class="col-12">
+                            <strong class="text-success">Vektörel Bilgiler:</strong>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-6">
+                            <strong>Orijinal Boyut:</strong><br>
+                            <small class="text-muted">
+                                {{ analysis.cuneiform_sign.vector_info.original_size }}
+                            </small>
+                        </div>
+                        <div class="col-6">
+                            <strong>HD Boyut:</strong><br>
+                            <small class="text-success">
+                                {{ analysis.cuneiform_sign.vector_info.enhanced_size }}
+                            </small>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-6">
+                            <strong>Büyütme:</strong><br>
+                            <small class="text-info">
+                                {{ analysis.cuneiform_sign.vector_info.scale_factor }}x
+                            </small>
+                        </div>
+                        <div class="col-6">
+                            <strong>Contour Noktaları:</strong><br>
+                            <small class="text-muted">
+                                {{ analysis.cuneiform_sign.vector_info.contour_points }}
+                            </small>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-12 text-center">
+                            <a href="{{ url_for('download_file', timestamp=request.args.get('timestamp', ''), filename=analysis.cuneiform_sign.vector_info.svg_path) }}" 
+                               class="btn btn-sm btn-success">
+                                <i class="fas fa-download"></i> SVG İndir
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="row">
+                        <div class="col-6">
+                            <strong>Boyut:</strong><br>
+                            <small class="text-muted">
+                                {{ analysis.cuneiform_sign.width }}×{{ analysis.cuneiform_sign.height }}px
+                            </small>
+                        </div>
+                        <div class="col-6">
+                            <strong>Alan:</strong><br>
+                            <small class="text-muted">
+                                {{ "{:,}".format(analysis.cuneiform_sign.area) }}px²
+                            </small>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-6">
+                            <strong>Oran:</strong><br>
+                            <small class="text-muted">
+                                {{ "%.2f"|format(analysis.cuneiform_sign.aspect_ratio) }}
+                            </small>
+                        </div>
+                        <div class="col-6">
+                            <strong>Konum:</strong><br>
+                            <small class="text-muted">
+                                X: {{ analysis.cuneiform_sign.position_x }}<br>
+                                Y: {{ analysis.cuneiform_sign.position_y }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Kısım: Referans Bilgileri -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">📝 3. Kısım: Referans Bilgileri</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Metin:</strong>
+                        <div class="alert alert-light mt-2">
+                            <code class="h5">{{ analysis.reference_info.text or 'Metin bulunamadı' }}</code>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <strong>Boyut:</strong><br>
+                            <small class="text-muted">
+                                {{ analysis.reference_info.width }}×{{ analysis.reference_info.height }}px
+                            </small>
+                        </div>
+                        <div class="col-6">
+                            <strong>Konum:</strong><br>
+                            <small class="text-muted">
+                                X: {{ analysis.reference_info.position_x }}<br>
+                                Y: {{ analysis.reference_info.position_y }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Satır Görseli -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">🖼️ Satır Görseli</h5>
+                </div>
+                <div class="card-body text-center">
+                    <img src="{{ url_for('download_file', timestamp=request.args.get('timestamp', ''), filename=line_data.filename) }}" 
+                         class="img-fluid rounded shadow" 
+                         alt="Satır {{ line_number }} Görseli"
+                         style="max-height: 300px;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analiz Özeti -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">📊 Analiz Özeti</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 text-center">
+                            <div class="p-3 bg-primary text-white rounded">
+                                <h4>{{ analysis.line_number.number }}</h4>
+                                <small>Satır Numarası</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div class="p-3 bg-success text-white rounded">
+                                <h4>{{ analysis.cuneiform_sign.width }}×{{ analysis.cuneiform_sign.height }}</h4>
+                                <small>Cuneiform Boyutu</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div class="p-3 bg-warning text-dark rounded">
+                                <h4>{{ analysis.reference_info.text|length if analysis.reference_info.text else 0 }}</h4>
+                                <small>Karakter Sayısı</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div class="p-3 bg-info text-white rounded">
+                                <h4>{{ analysis.reference_info.text.split()|length if analysis.reference_info.text else 0 }}</h4>
+                                <small>Kelime Sayısı</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-danger">
+                <h4>❌ Analiz Hatası</h4>
+                <p>Bu satır için analiz yapılamadı. Lütfen tekrar deneyin.</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
