@@ -46,6 +46,9 @@ def index():
 @app.route('/upload', methods=['POST'])
 def upload_file():
     """Handle a file upload and run the line-splitting pipeline."""
+    # Enable SVG export for web mode
+    os.environ['EXPORT_SVG'] = 'true'
+    
     # Validate file upload
     file = request.files.get('file')
     is_valid, error_message = validate_file_upload(file)
@@ -200,6 +203,9 @@ def line_detail(line_number):
 @app.route('/api/process', methods=['POST'])
 def api_process():
     """API endpoint that accepts an image and returns a JSON result."""
+    # Enable SVG export for web mode
+    os.environ['EXPORT_SVG'] = 'true'
+    
     # Validate file upload
     file = request.files.get('file')
     is_valid, error_message = validate_file_upload(file)
@@ -234,6 +240,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Cuneiform line splitting web + CLI')
     parser.add_argument('--image', help='Path to an image file to process (CLI mode)')
     parser.add_argument('--output-dir', help='Output directory for CLI mode')
+    parser.add_argument('--exportAsSVG', action='store_true', help='Export cuneiform signs as SVG vector files (CLI mode only)')
     parser.add_argument('--googlecv', action='store_true', help='Use Google Cloud Vision OCR instead of EasyOCR')
     parser.add_argument('--host', default='0.0.0.0', help='Flask host')
     parser.add_argument('--port', type=int, default=3001, help='Flask port')
@@ -241,7 +248,7 @@ if __name__ == '__main__':
 
     if args.image:
         # Run in CLI mode using the dedicated utility
-        exit_code = run_cli_mode(args.image, args.output_dir, args.googlecv)
+        exit_code = run_cli_mode(args.image, args.output_dir, args.googlecv, args.exportAsSVG)
         raise SystemExit(exit_code)
 
     print("🚀 Cuneiform Line Splitting Web Application Starting...")

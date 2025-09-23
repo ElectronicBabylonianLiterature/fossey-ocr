@@ -142,8 +142,12 @@ def extract_svg_content(analysis: Dict, output_dir: str) -> str:
         output_dir: Output directory
         
     Returns:
-        SVG content string
+        SVG content string (empty if SVG export is disabled)
     """
+    # Only extract SVG content if SVG export is enabled
+    if os.environ.get('EXPORT_SVG', '').lower() != 'true':
+        return ""
+    
     svg_content = ""
     vector_info = analysis.get('cuneiform_sign', {}).get('vector_info', {})
     
@@ -220,7 +224,7 @@ def output_results_cli(final_json_output: List[Dict], output_dir: str) -> None:
         print(f"⚠️ Could not write full JSON output file: {e}")
 
 
-def run_cli_mode(image_path: str, output_dir: str = None, use_google_vision: bool = False) -> int:
+def run_cli_mode(image_path: str, output_dir: str = None, use_google_vision: bool = False, export_svg: bool = False) -> int:
     """
     Main entry point for CLI mode processing.
     
@@ -228,6 +232,7 @@ def run_cli_mode(image_path: str, output_dir: str = None, use_google_vision: boo
         image_path: Path to input image
         output_dir: Output directory (optional, will be auto-generated if not provided)
         use_google_vision: Whether to use Google Cloud Vision OCR instead of EasyOCR
+        export_svg: Whether to export SVG vector files
         
     Returns:
         Exit code (0 for success, 1 for error)
@@ -240,6 +245,14 @@ def run_cli_mode(image_path: str, output_dir: str = None, use_google_vision: boo
         else:
             print("🔧 Using EasyOCR")
             os.environ.pop('USE_GOOGLE_VISION', None)
+        
+        # Set SVG export flag
+        if export_svg:
+            print("🎨 SVG export enabled")
+            os.environ['EXPORT_SVG'] = 'true'
+        else:
+            print("🎨 SVG export disabled")
+            os.environ.pop('EXPORT_SVG', None)
         
         # Create output directory if not provided
         if not output_dir:

@@ -533,8 +533,10 @@ class CuneiformAnalyzer:
             cuneiform_path = os.path.join(output_dir, cuneiform_filename)
             cv2.imwrite(cuneiform_path, white_background)
             
-            # Create vector representation
-            vector_info = self.create_vector_representation(cuneiform_sign, line_number, timestamp, output_dir)
+            # Create vector representation only if SVG export is enabled
+            vector_info = {}
+            if os.environ.get('EXPORT_SVG', '').lower() == 'true':
+                vector_info = self.create_vector_representation(cuneiform_sign, line_number, timestamp, output_dir)
             
             # Match with catalog
             catalog_match = match_reference_with_catalog(final_text, self.catalog)

@@ -49,6 +49,41 @@ A sophisticated web application that automatically splits cuneiform tablet photo
    http://localhost:3001
    ```
 
+## 💻 Command Line Interface (CLI)
+
+The system also supports command-line processing for batch operations and integration with other tools.
+
+### CLI Usage
+
+```bash
+# Basic usage
+python app.py --image path/to/cuneiform_image.jpg --output-dir output_folder
+
+# Export SVG vector files (optional)
+python app.py --image path/to/cuneiform_image.jpg --output-dir output_folder --exportAsSVG
+
+# Use Google Cloud Vision OCR
+python app.py --image path/to/cuneiform_image.jpg --output-dir output_folder --googlecv
+
+# Combined options
+python app.py --image path/to/cuneiform_image.jpg --output-dir output_folder --exportAsSVG --googlecv
+```
+
+### CLI Options
+
+- `--image`: Path to the input cuneiform tablet image (required for CLI mode)
+- `--output-dir`: Directory to save processed results (optional, auto-generated if not provided)
+- `--exportAsSVG`: Export cuneiform signs as SVG vector files (optional, disabled by default)
+- `--googlecv`: Use Google Cloud Vision OCR instead of EasyOCR (optional)
+
+### CLI Output
+
+The CLI mode generates:
+- Individual line images (JPG format)
+- JSON analysis file (`cli_output.json`)
+- SVG vector files (only if `--exportAsSVG` is specified)
+- Console output with processing status
+
 ## 📖 How It Works
 
 ### 1. Line Number Detection
@@ -149,6 +184,10 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 👥 Contributors
+
+The parser was initially developed by **Abdullah Bakla** ([abdullahbakla7323](https://github.com/abdullahbakla7323)). Some refinement, including a CLI implementation, refinements for the OCR and further parsing, was done by **Enrique Jiménez** ([ejimsan](https://github.com/ejimsan)).
 
 ## 📧 Support
 
